@@ -4,7 +4,7 @@ import CheckList from "../molecules/CheckList";
 import TotalPrice from "../atoms/TotalPrice";
 import SubmitButton from "../atoms/SubmitButton";
 import styled from "styled-components";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { ordersSave } from "../../services/order";
 import { useNavigate } from "react-router-dom";
@@ -38,8 +38,6 @@ const OrderTemplate = ({ data }) => {
   const [agreePayment, setAgreePayment] = useState(false);
   const [agreePolicy, setAgreePolicy] = useState(false);
 
-  const allAgreeRef = useRef(null);
-
   const handleAllAgree = (e) => {
     const value = e.target.checked;
 
@@ -57,10 +55,14 @@ const OrderTemplate = ({ data }) => {
   };
 
   const { mutate } = useMutation(ordersSave);
+  const [clickOrder, setClickOrder] = useState(false);
+
+  useEffect(() => {
+    agreePayment && agreePolicy ? setClickOrder(true) : setClickOrder(false);
+  }, [agreePayment, agreePolicy]);
 
   const beforeOrderFailure = () => {
-    if (allAgreeRef.current?.checked === false)
-      alert("약관 동의가 필요합니다.");
+    if (!agreePayment || !agreePolicy) alert("약관 동의가 필요합니다.");
     else if (products.length === 0) alert("주문할 상품이 없습니다.");
     else {
       afterOrder();
@@ -113,7 +115,6 @@ const OrderTemplate = ({ data }) => {
                 htmlFor="all-agree"
                 id="all-agree"
                 checked={agreePayment && agreePolicy}
-                ref={allAgreeRef}
                 onChange={handleAllAgree}
               >
                 전체 동의
@@ -142,7 +143,17 @@ const OrderTemplate = ({ data }) => {
               </CheckList>
             </div>
           </div>
-          <SubmitButton onClick={beforeOrderFailure}>결제하기</SubmitButton>
+          {clickOrder ? (
+            <SubmitButton onClick={beforeOrderFailure}>결제하기</SubmitButton>
+          ) : (
+            <SubmitButton
+              onClick={beforeOrderFailure}
+              disabled
+              backgroundColor="#ccc"
+            >
+              결제하기
+            </SubmitButton>
+          )}
         </Container>
       </Group>
     </>

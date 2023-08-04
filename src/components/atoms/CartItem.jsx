@@ -2,6 +2,7 @@ import Card from "./Card";
 import Counter from "../molecules/Counter";
 import { comma } from "../../utils/convert";
 import styled from "styled-components";
+import { forwardRef } from "react";
 
 const ProductName = styled.p`
   font-size: 1.2rem;
@@ -35,7 +36,7 @@ const TotalPrice = styled.div`
   }
 `;
 
-const CartItem = ({ item, onChange, onClick }) => {
+const CartItem = forwardRef(({ item, onChange, onClick }, ref) => {
   return (
     <>
       <div className="cart-item-box">
@@ -51,10 +52,10 @@ const CartItem = ({ item, onChange, onClick }) => {
                   <Counter
                     value={cart.quantity}
                     onIncrease={(count) => {
-                      onChange(cart.id, count, cart.option.price);
+                      onChange(cart.option.id, count, cart.option.price);
                     }}
                     onDecrease={(count) => {
-                      onChange(cart.id, count, -cart.option.price);
+                      onChange(cart.option.id, count, -cart.option.price);
                     }}
                   />
                 </span>
@@ -81,6 +82,6 @@ const CartItem = ({ item, onChange, onClick }) => {
       </div>
     </>
   );
-};
+});
 
 export default CartItem;

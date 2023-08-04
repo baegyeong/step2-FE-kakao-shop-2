@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import CartItem from "../atoms/CartItem";
 import Card from "../atoms/Card";
+import NoCartItem from "../atoms/NoCartItem";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import SubmitButton from "../atoms/SubmitButton";
@@ -49,9 +50,7 @@ const TotalPrice = styled.div`
 
 const CartList = ({ data }) => {
   const navigate = useNavigate();
-
   const [cartItems, setCartItems] = useState([]);
-
   const updatePayload = useRef([]);
 
   useEffect(() => {
@@ -65,13 +64,9 @@ const CartList = ({ data }) => {
   });
 
   const getTotalCartCountIncludeOptions = useCallback(() => {
-    let count = 0;
-    cartItems &&
-      cartItems.forEach((item) => {
-        item.carts.forEach((cart) => {
-          count += cart.quantity;
-        });
-      });
+    const count = cartItems
+      .flatMap((item) => item.carts)
+      .reduce((total, cart) => total + cart.quantity, 0);
 
     return count;
   }, [cartItems]);
@@ -105,38 +100,42 @@ const CartList = ({ data }) => {
     <Container>
       <StyledGroup className="cart-list">
         <Title>장바구니</Title>
-        <Card>
-          {Array.isArray(cartItems) &&
-            cartItems.map((item) => {
-              return (
-                <CartItem
-                  key={item.id}
-                  item={item}
-                  ref={updatePayload}
-                  onChange={handleOnChangeCount}
-                />
-              );
-            })}
-        </Card>
-        <TotalPrice>
-          <div>주문 예상 금액</div>
-          <div className="price">{comma(totalPrice)}원</div>
-        </TotalPrice>
-        <SubmitButton
-          className="order-btn"
-          onClick={() => {
-            mutate(updatePayload.current, {
-              onSuccess: (data) => {
-                navigate(staticServerUri + routes.orders);
-              },
-              onError: (error) => {
-                console.log(error);
-              },
-            });
-          }}
-        >
-          총 {getTotalCartCountIncludeOptions()}건 결제하기
-        </SubmitButton>
+        {cartItems.length === 0 ? (
+          <NoCartItem />
+        ) : (
+          <>
+            {Array.isArray(cartItems) &&
+              cartItems.map((item) => {
+                return (
+                  <CartItem
+                    key={item.id}
+                    item={item}
+                    ref={updatePayload}
+                    onChange={handleOnChangeCount}
+                  />
+                );
+              })}
+            <TotalPrice>
+              <div>주문 예상 금액</div>
+              <div className="price">{comma(totalPrice)}원</div>
+            </TotalPrice>
+            <SubmitButton
+              className="order-btn"
+              onClick={() => {
+                mutate(updatePayload.current, {
+                  onSuccess: (data) => {
+                    navigate(staticServerUri + routes.orders);
+                  },
+                  onError: (error) => {
+                    console.log(error);
+                  },
+                });
+              }}
+            >
+              총 {getTotalCartCountIncludeOptions()}건 결제하기
+            </SubmitButton>
+          </>
+        )}
       </StyledGroup>
     </Container>
   );
